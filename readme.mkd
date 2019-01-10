@@ -1,0 +1,18 @@
+# The Spirit Biome
+This game is made in LÖVE.
+Tachytaenius (AKA Tachtaeni (deprecated) and wolfboyft) made this.
+
+## Current features
+* A nice love.run in the main chunk.
+* A nicely structured system for settings, constants and assets.
+
+## Future plans
+* Weird, beautiful environments.
+* The ability to be an ecologist and research the wonders of the Spirit Biome.
+* The ability to be a soldier and fight non-lethally for freedom in and protection for the Spirit Biome.
+
+## Credits
+* LÖVE's developers for making their *awesome* framework.
+* Saskia Baron, for being someone of her age who accepts video games like mine as art.
+* My lovingly loved partner, for being amazing and supportive and saying that it's cool.
+* burellia/friedflapjack, for the same.
