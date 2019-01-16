@@ -14,7 +14,7 @@ return function(x, y, width, height)
 	new:addSystem(systems.movement(), "draw")
 	local entity = concord.entity():give(components.position, 50, 50, 0):give(components.player, 1):give(components.mobility, 16, 32, 12,  14, 28, 10, math.tau * 2, math.tau * 2, math.tau / 2)
 	new:addEntity(entity)
-	new:addEntity(concord.entity():give(components.position, 50, 50, 0):give(components.ai, entity, 16, 4):give(components.mobility, 15, 31, 11,  13, 27, 9, math.tau * 2, math.tau * 2, math.tau / 2))
+	-- new:addEntity(concord.entity():give(components.position, 50, 50, 0):give(components.ai, entity, 16, 4):give(components.mobility, 15, 31, 11,  13, 27, 9, math.tau * 2, math.tau * 2, math.tau / 2))
 	return new
 end
 
