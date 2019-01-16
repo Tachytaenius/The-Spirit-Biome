@@ -6,6 +6,11 @@ constants.core.identity = "biome"
 constants.core.tickWorth = 1 / 24 -- seconds
 constants.core.maxTickSkip = 8
 
+constants.gameplay = {}
+constants.gameplay.metre = 12
+constants.gameplay.cellSize = constants.gameplay.metre * 4
+constants.gameplay.zeroSnap = 0.05
+
 constants.graphics = {}
 constants.graphics.width = 480
 constants.graphics.height = 270
@@ -16,7 +21,8 @@ constants.graphics.horizontalMenuOffset = constants.graphics.width / math.phi / 
 constants.graphics.verticalMenuOffset = constants.graphics.height / math.phi / 2
 constants.graphics.horizontalMenuSize = constants.graphics.width - constants.graphics.horizontalMenuOffset * 2
 constants.graphics.verticalMenuSize = constants.graphics.height - constants.graphics.verticalMenuOffset * 2
-constants.graphics.menuRowHeight = 22
+constants.graphics.menuPadding = 4
+constants.graphics.menuRowHeight = 20
 constants.graphics.fontString = " ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.!?$,#@~:;-{}|&()<>'[]^£%/\\*0123456789"
 constants.graphics.fontSpecials = {
 	{from = "\"[", to = "<"}, -- open quote
@@ -35,31 +41,29 @@ constants.graphics.fontSpecials = {
 -- whileDown, onRelease, onPress
 -- recorded, unrecorded
 
-local whileDown_recorded = {deltaPolicy = "whileDown", recorded = true}
-local whileDown_unrecorded = {deltaPolicy = "whileDown", recorded = false}
-local onRelease_unrecorded = {deltaPolicy = "onRelease", recorded = false}
+constants.fixedUpdateCommands = { 
+	advance = "whileDown",
+	strafeLeft = "whileDown",
+	backpedal = "whileDown",
+	strafeRight = "whileDown",
+	turnLeft = "whileDown",
+	turnRight = "whileDown"
+}
 
-constants.commands = { 
-	advance = whileDown_recorded,
-	strafeLeft = whileDown_recorded,
-	backpedal = whileDown_recorded,
-	strafeRight = whileDown_recorded,
-	turnLeft = whileDown_recorded,
-	turnRight = whileDown_recorded,
+constants.frameUpdateCommands = {
+	pause = "onRelease",
 	
-	pause = onRelease_unrecorded,
+	toggleMouseGrab = "onRelease",
+	takeScreenshot = "onRelease",
+	toggleInfo = "onRelease",
+	previousDisplay = "onRelease",
+	nextDisplay = "onRelease",
+	scaleUp = "onRelease",
+	scaleDown = "onRelease",
+	toggleFullscreen = "onRelease",
 	
-	toggleMouseGrab = onRelease_unrecorded,
-	takeScreenshot = onRelease_unrecorded,
-	toggleInfo = onRelease_unrecorded,
-	previousDisplay = onRelease_unrecorded,
-	nextDisplay = onRelease_unrecorded,
-	scaleUp = onRelease_unrecorded,
-	scaleDown = onRelease_unrecorded,
-	toggleFullscreen = onRelease_unrecorded,
-	
-	uiPrimary = whileDown_unrecorded,
-	uiSecondary = whileDown_unrecorded
+	uiPrimary = "whileDown",
+	uiSecondary = "whileDown"
 }
 
 return constants

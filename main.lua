@@ -3,6 +3,7 @@ local constants = require("constants")
 local settings = require("settings")
 
 local input = require("input")
+local world = require("world")
 local suit = require("lib.suit")
 local concord = require("lib.concord").init()
 
@@ -16,7 +17,8 @@ function love.load(args)
 		-- mouseX = nil,
 		-- mouseY = nil
 	}
-	input.ticks = {{}, {}}
+	input.frameUpdates = {{}, {}}
+	input.fixedUpdates = {{}, {}}
 	input.recording = false -- TODO
 	input.replaying = false -- TODO
 	settings("load")
@@ -27,7 +29,7 @@ function love.load(args)
 		local seed = args[2] or love.math.random(2 ^ 53) - 1
 		play = {
 			canvas = love.graphics.newCanvas(constants.graphics.width, constants.graphics.height),
-			worlds = {}
+			worlds = {[world()] = 1}
 			
 		}
 	elseif args[1] == "load" then
@@ -42,26 +44,7 @@ function love.update(dt)
 	-- TODO: Particles
 	-- TODO: Save recording
 	
-	if ui.type then
-		suit.updateMouse(ui.mouseX, ui.mouseY, input.checkCommand("uiPrimary") or false) -- nil will make no change, but false will
-		if ui.type == "paused" then
-			suit.layout:reset(constants.graphics.horizontalMenuOffset, constants.graphics.verticalMenuOffset)
-			if suit.Button("Quit", suit.layout:row(constants.graphics.horizontalMenuSize, constants.graphics.verticalMenuSize)).hit then
-				love.event.quit()
-			end
-		end
-	else
-		suit.exitFrame()
-		suit.enterFrame()
-	end
-end
-
-function love.fixedUpdate(dt)
-	assert(dt == constants.core.tickWorth, "A fixed update represents a fixed amount of time")
-	
-	input.step()
-	
-	if input.checkCommand("pause") then
+	if input.checkFrameUpdateCommand("pause") then
 		if ui.type then
 			ui.type = nil
 			ui.mouseX, ui.mouseY = nil, nil
@@ -71,17 +54,18 @@ function love.fixedUpdate(dt)
 		end
 	end
 	
-	if input.checkCommand("toggleMouseGrab") then
+	
+	if input.checkFrameUpdateCommand("toggleMouseGrab") then
 		love.mouse.setRelativeMode(not love.mouse.getRelativeMode())
 	end
 	
-	if input.checkCommand("takeScreenshot") then
+	if input.checkFrameUpdateCommand("takeScreenshot") then
 		local info = love.filesystem.getInfo("screenshots")
 		if info and info.type ~= "directory" then
-			print("There is already a non-folder item called screenshots. Rename it or move it to take a screenshot.")
+			print("There is already a non-folder item called screenshots. Rename it or move it to take a screenshot")
 			return
 		elseif not info then
-			print("Couldn't find screenshots folder. Creating.")
+			print("Couldn't find screenshots folder. Creating")
 			love.filesystem.createDirectory("screenshots")
 		end
 		local current = 0
@@ -101,54 +85,95 @@ function love.fixedUpdate(dt)
 		data:encode("png", "screenshots/" .. current + 1 .. ".png")
 	end
 	
-	if input.checkCommand("previousDisplay") then
+	if input.checkFrameUpdateCommand("previousDisplay") then
 		settings.graphics.display = (settings.graphics.display - 1) % love.window.getDisplayCount()
 	end
 	
-	if input.checkCommand("nextDisplay") then
+	if input.checkFrameUpdateCommand("nextDisplay") then
 		settings.graphics.display = (settings.graphics.display + 1) % love.window.getDisplayCount()
 	end
 	
-	if settings.graphics.scale > 1 and input.checkCommand("scaleDown") then
+	if settings.graphics.scale > 1 and input.checkFrameUpdateCommand("scaleDown") then
 		settings.graphics.scale = settings.graphics.scale - 1
 		settings("apply")
 		settings("save")
 	end
 	
-	if input.checkCommand("scaleUp") then
+	if input.checkFrameUpdateCommand("scaleUp") then
 		settings.graphics.scale = settings.graphics.scale + 1
 		settings("apply")
 		settings("save")
 	end
 	
-	if input.checkCommand("toggleFullscreen") then
+	if input.checkFrameUpdateCommand("toggleFullscreen") then
 		settings.graphics.fullscreen = not settings.graphics.fullscreen
 		settings("apply")
 		settings("save")
 	end
 	
-	if input.checkCommand("toggleInfo") then
+	if input.checkFrameUpdateCommand("toggleInfo") then
 		settings.graphics.showPerformance = not settings.graphics.showPerformance
 		settings("save")
+	end
+	
+	if ui.type then
+		suit.updateMouse(ui.mouseX, ui.mouseY, input.checkFrameUpdateCommand("uiPrimary") or false) -- nil will make no change, but false will
+		if ui.type == "paused" then
+			suit.layout:reset(constants.graphics.horizontalMenuOffset, constants.graphics.verticalMenuOffset, constants.graphics.menuPadding)
+			if suit.Button("Resume", suit.layout:row(constants.graphics.horizontalMenuSize, constants.graphics.menuRowHeight)).hit then
+				ui.type = nil
+				ui.mouseX, ui.mouseY = nil, nil
+			end
+			if suit.Button("Quit", suit.layout:row()).hit then
+				love.event.quit()
+			end
+		end
+	else
+		suit.exitFrame()
+		suit.enterFrame()
+	end
+	
+	input.stepFrameUpdate()
+end
+
+function love.fixedUpdate(dt)
+	assert(dt == constants.core.tickWorth, "A fixed update represents a fixed amount of time")
+	
+	if ui.type ~= "paused" then
+		local realmTransfers = {}
+		for world in pairs(play.worlds) do
+			world:emit("fixedUpdate", dt)
+			realmTransfers[world] = {
+				-- [entity] = destinationWorld
+			}
+			world:emit("getRealmTransfers", realmTransfers[world])
+		end
+		for source, transfersFromSource in pairs(realmTransfers) do
+			for entity, destination in pairs(transfersFromSource) do
+				-- TODO
+				-- Please don't forget to do stuff with relativity children
+			end
+		end
+		
+		input.stepFixedUpdate()
 	end
 end
 
 function love.draw(interpolation)
 	if ui.type ~= "paused" then
 		love.graphics.setCanvas(play.canvas)
-		-- draw play
+		love.graphics.clear()
+		for world in pairs(play.worlds) do
+			world:emit("draw")
+		end
 	end
 	love.graphics.setCanvas(contentCanvas)
-	love.graphics.clear(0, 0, 0)
+	love.graphics.clear()
 	love.graphics.draw(play.canvas)
 	if ui.type then
+		love.graphics.setColor(1, 1, 1)
 		suit.draw()
-		love.graphics.setColor(
-			settings.mouse.cursorColour.red,
-			settings.mouse.cursorColour.green,
-			settings.mouse.cursorColour.blue,
-			settings.mouse.cursorColour.alpha
-		)
+		love.graphics.setColor(settings.mouse.cursorColour)
 		love.graphics.draw(assets.images.ui.cursor.value, math.floor(ui.mouseX), math.floor(ui.mouseY))
 		love.graphics.setColor(1, 1, 1)
 	end

@@ -2,18 +2,18 @@ local constants = require("constants")
 local json = require("lib.json")
 
 local template = {
-	buttons = function(try)
+	fixedUpdateCommands = function(try)
 		if type(try) == "table" then
 			local result = {}
 			for k, v in pairs(try) do
-				if constants.commands[k] then
+				if constants.fixedUpdateCommands[k] then
 					if pcall(love.keyboard.isScancodeDown, v) or pcall(love.mouse.isDown, v) then
 						result[k] = v
 					else
-						print("\"" .. v .. "\" is not a valid input to bind to a command.")
+						print("\"" .. v .. "\" is not a valid input to bind to a fixed update command")
 					end
 				else
-					print("\"" .. k .. "\" is not a valid command to bind inputs to.")
+					print("\"" .. k .. "\" is not a valid fixed update command to bind inputs to")
 				end
 			end
 			return result
@@ -25,7 +25,27 @@ local template = {
 				strafeRight = "d",
 				turnLeft = ",",
 				turnRight = ".",
-				
+			}
+		end
+	end,
+	
+	frameUpdateCommands = function(try)
+		if type(try) == "table" then
+			local result = {}
+			for k, v in pairs(try) do
+				if constants.frameUpdateCommands[k] then
+					if pcall(love.keyboard.isScancodeDown, v) or pcall(love.mouse.isDown, v) then
+						result[k] = v
+					else
+						print("\"" .. v .. "\" is not a valid input to bind to a fixed update command")
+					end
+				else
+					print("\"" .. k .. "\" is not a valid fixed update command to bind inputs to")
+				end
+			end
+			return result
+		else
+			return {
 				pause = "escape",
 				
 				toggleMouseGrab = "f1",
@@ -43,15 +63,16 @@ local template = {
 			}
 		end
 	end,
+	
 	mouse = {
 		divideByScale = function(try) if type(try) == "boolean" then return try else return true end end,
 		xSensitivity = function(try) return type(try) == "number" and try or 1 end,
 		ySensitivity = function(try) return type(try) == "number" and try or 1 end,
 		cursorColour = {
-			red = function(try) return type(try) == "number" and try >= 0 and try <= 1 and try or 1 end,
-			green = function(try) return type(try) == "number" and try >= 0 and try <= 1 and try or 1 end,
-			blue = function(try) return type(try) == "number" and try >= 0 and try <= 1 and try or 1 end,
-			alpha = function(try) return type(try) == "number" and try >= 0 and try <= 1 and try or 1 end
+			function(try) return type(try) == "number" and try >= 0 and try <= 1 and try or 1 end,
+			function(try) return type(try) == "number" and try >= 0 and try <= 1 and try or 1 end,
+			function(try) return type(try) == "number" and try >= 0 and try <= 1 and try or 1 end,
+			function(try) return type(try) == "number" and try >= 0 and try <= 1 and try or 1 end
 		}
 	},
 	graphics = {
