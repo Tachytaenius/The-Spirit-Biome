@@ -37,17 +37,15 @@ constants.graphics.fontSpecials = {
 	{from = "$,", to = "~"} -- interrobang comma
 }
 
--- TODO: regular expression for niceness
--- whileDown, onRelease, onPress
--- recorded, unrecorded
-
 constants.fixedUpdateCommands = { 
 	advance = "whileDown",
 	strafeLeft = "whileDown",
 	backpedal = "whileDown",
 	strafeRight = "whileDown",
 	turnLeft = "whileDown",
-	turnRight = "whileDown"
+	turnRight = "whileDown",
+	run = "whileDown",
+	sneak = "whileDown"
 }
 
 constants.frameUpdateCommands = {

@@ -25,6 +25,8 @@ local template = {
 				strafeRight = "d",
 				turnLeft = ",",
 				turnRight = ".",
+				run = "lshift",
+				sneak = "lctrl"
 			}
 		end
 	end,

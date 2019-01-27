@@ -142,7 +142,8 @@ function love.fixedUpdate(dt)
 	if ui.type ~= "paused" then
 		local realmTransfers = {}
 		for world in pairs(play.worlds) do
-			world:emit("fixedUpdate", dt)
+			world:emit("execute", dt)
+			world:emit("correct")
 			realmTransfers[world] = {
 				-- [entity] = destinationWorld
 			}
