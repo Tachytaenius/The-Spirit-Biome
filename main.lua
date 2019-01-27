@@ -54,7 +54,6 @@ function love.update(dt)
 		end
 	end
 	
-	
 	if input.checkFrameUpdateCommand("toggleMouseGrab") then
 		love.mouse.setRelativeMode(not love.mouse.getRelativeMode())
 	end
@@ -160,12 +159,12 @@ function love.fixedUpdate(dt)
 	end
 end
 
-function love.draw(interpolation)
+function love.draw(lag)
 	if ui.type ~= "paused" then
 		love.graphics.setCanvas(play.canvas)
 		love.graphics.clear()
 		for world in pairs(play.worlds) do
-			world:emit("draw")
+			world:emit("draw", lag)
 		end
 	end
 	love.graphics.setCanvas(contentCanvas)

@@ -29,28 +29,28 @@ return function(x, y, width, height)
 	local entity = concord.entity():give(components.presence, 0, 0, 0, {}, {}):give(components.player, 1):give(components.velocity):give(
 		components.mobility,
 		{
-			advance = 12,
-			backpedal = 9,
-			strafeLeft = 10,
-			strafeRight = 10,
+			advance = 80,
+			backpedal = 70,
+			strafeLeft = 75,
+			strafeRight = 75,
 			turnLeft = math.tau * 0.5,
 			turnRight = math.tau * 0.5
 		},
 		{
-			advance = 16,
-			backpedal = 13,
-			strafeLeft = 14,
-			strafeRight = 14,
+			advance = 150,
+			backpedal = 140,
+			strafeLeft = 145,
+			strafeRight = 145,
 			turnLeft = math.tau * 2,
 			turnRight = math.tau * 2
 		},
 		{
-			advance = 32,
-			backpedal = 24,
-			strafeLeft = 28,
-			strafeRight = 28,
-			turnLeft = math.tau * 2,
-			turnRight = math.tau * 2
+			advance = 200,
+			backpedal = 290,
+			strafeLeft = 295,
+			strafeRight = 295,
+			turnLeft = math.tau * 3,
+			turnRight = math.tau * 3
 		}
 	)
 	new:addEntity(entity)

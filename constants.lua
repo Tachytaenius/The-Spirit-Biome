@@ -3,7 +3,7 @@ local constants = {}
 constants.core = {}
 constants.core.title = "The Spirit Biome"
 constants.core.identity = "biome"
-constants.core.tickWorth = 1 / 24 -- seconds
+constants.core.tickWorth = 1 / 60 -- seconds
 constants.core.maxTickSkip = 8
 
 constants.gameplay = {}

@@ -12,16 +12,11 @@ for _, terrain in pairs(terrain) do
 	end
 end
 
-function movement:draw()
+function movement:draw(lag)
 	for i = 1, self.mobs.size do
 		local sooch = self.mobs:get(i):get(components.presence)
 		love.graphics.translate(constants.graphics.width / 2, constants.graphics.height - 80)
 		love.graphics.rotate(-sooch.theta)
-		if self.targetVelocities then
-			love.graphics.points(self.targetVelocities[self.mobs:get(i)].x * 3, self.targetVelocities[self.mobs:get(i)].y * 3)
-			love.graphics.setColor(0, 1, 1)
-			love.graphics.points(self.velocityChanges[self.mobs:get(i)].x, self.velocityChanges[self.mobs:get(i)].y)
-		end
 		love.graphics.translate(-sooch.x, -sooch.y)
 		love.graphics.setPointSize(1)
 		love.graphics.setColor(1, 0, 0)
@@ -172,8 +167,8 @@ function movement:execute(dt)
 			end
 			
 			-- Get clamped velocities
-			relativeTargetVelocityX, relatveVelocityChangeX = clamp(relativeTargetVelocityX, relatveVelocityChangeX)
-			relativeTargetVelocityY, relatveVelocityChangeY = clamp(relativeTargetVelocityY, relatveVelocityChangeY)
+			relativeTargetVelocityX, relativeTargetVelocityY = clamp(relativeTargetVelocityX, relativeTargetVelocityY)
+			relatveVelocityChangeX, relatveVelocityChangeY = clamp(relatveVelocityChangeX, relatveVelocityChangeY)
 			
 			-- Use the velocities
 			relativeVelocityX = useVelocities(relativeVelocityX, relativeTargetVelocityX, relatveVelocityChangeX)
@@ -184,7 +179,7 @@ function movement:execute(dt)
 			velocity.y = relativeVelocityY * cosine + relativeVelocityX * sine
 			
 			-- Add velocity to position
-			presence.x, presence.y = presence.x + velocity.x, presence.y + velocity.y
+			presence.x, presence.y = presence.x + velocity.x * dt, presence.y + velocity.y * dt
 		end
 	end
 end
