@@ -2,8 +2,15 @@ local constants = require("constants")
 
 local assets = {
 	shaders = {
-		depth = {load = function(self) self.value = love.graphics.newShader("assets/shaders/depth.glsl") self.value:send("depth", constants.graphics.channelSize) end},
-		erode = {load = function(self) self.value = love.graphics.newShader("assets/shaders/erode.glsl") self.value:send("erodeResolution", constants.graphics.erodeResolution) self.value:send("erodeDistance", constants.graphics.erodeDistance) end}
+		depth = {load = function(self)
+			self.value = love.graphics.newShader("assets/shaders/depth.glsl")
+			self.value:send("depth", constants.graphics.channelSize)
+		end},
+		erode = {load = function(self)
+			self.value = love.graphics.newShader("assets/shaders/erode.glsl")
+			self.value:send("erodeResolution", constants.graphics.erodeResolution)
+			self.value:send("erodeDistance", constants.graphics.erodeDistance)
+		end}
 	},
 	images = {
 		ui = {

@@ -81,7 +81,8 @@ local template = {
 		fullscreen = function(try) return type(try) == "boolean" and try end,
 		showPerformance = function(try) return type(try) == "boolean" and try end,
 		scale = function(try) return type(try) == "number" and math.isInteger(try) and try >= 1 and try or 1 end,
-		display = function(try) return type(try) == "number" and math.isInteger(try) and try >= 1 and try or 1 end
+		display = function(try) return type(try) == "number" and math.isInteger(try) and try >= 1 and try or 1 end,
+		interpolation = function(try) if type(try) == "boolean" then return try else return true end end,
 	},
 	manualGarbageCollection = {
 		enable = function(try) if type(try) == "boolean" then return try else return true end end,

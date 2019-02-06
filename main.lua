@@ -6,6 +6,7 @@ local input = require("input")
 local world = require("world")
 local suit = require("lib.suit")
 local concord = require("lib.concord").init()
+local components = require("components")
 
 local contentCanvas, play, ui
 
@@ -27,11 +28,43 @@ function love.load(args)
 	
 	if not args[1] or args[1] == "new" then
 		local seed = args[2] or love.math.random(2 ^ 53) - 1
+		local rng = love.math.newRandomGenerator(seed)
 		play = {
 			canvas = love.graphics.newCanvas(constants.graphics.width, constants.graphics.height),
-			worlds = {[world()] = 1}
-			
+			worlds = {world(-50, -50, 50, 50, rng)}
 		}
+		play.cameraEntity = concord.entity()
+		play.cameraEntity:give(components.presence, 0, 0, 0, play.cameraEntity, play.worlds[1].collider:circle(0, 0, 20), 50, true):give(components.player, 1):give(components.velocity):give(
+			components.mobility,
+			{
+				advance = 80,
+				backpedal = 70,
+				strafeLeft = 75,
+				strafeRight = 75,
+				turnLeft = math.tau * 0.5,
+				turnRight = math.tau * 0.5
+			},
+			{
+				advance = 175,
+				backpedal = 150,
+				strafeLeft = 155,
+				strafeRight = 155,
+				turnLeft = math.tau * 2,
+				turnRight = math.tau * 2
+			},
+			{
+				advance = 200,
+				backpedal = 290,
+				strafeLeft = 295,
+				strafeRight = 295,
+				turnLeft = math.tau * 3,
+				turnRight = math.tau * 3
+			}
+		)
+		play.worlds[1]:addEntity(play.cameraEntity)
+		local new = concord.entity()
+		new:give(components.presence, 0, 0, 0, new, play.worlds[1].collider:circle(0, 0, 20), 100, true):give(components.velocity)
+		play.worlds[1]:addEntity(new)
 	elseif args[1] == "load" then
 		local path = args[2]
 		
@@ -75,7 +108,7 @@ function love.update(dt)
 				if number and number > current then current = number end
 			end
 		end
-		local data = contentCanvas:newImageData()
+		local data = play.canvas:newImageData()
 		data:mapPixel(
 			function(x, y, r, g, b, a)
 				return math.round(r, constants.graphics.channelSize - 1), math.round(g, constants.graphics.channelSize - 1), math.round(b, constants.graphics.channelSize - 1), 1
@@ -138,9 +171,22 @@ end
 function love.fixedUpdate(dt)
 	assert(dt == constants.core.tickWorth, "A fixed update represents a fixed amount of time")
 	
+	local cameraWorld = play.cameraEntity.instances:get(1)
+	if not love.graphics.isActive() or not settings.graphics.interpolation then
+		if cameraWorld.hasLerpValues then
+			cameraWorld:emit("clearLerpValues")
+			cameraWorld.hasLerpValues = false
+		end
+	end
+	
 	if ui.type ~= "paused" then
+		if love.graphics.isActive() and settings.graphics.interpolation then
+			cameraWorld:emit("copyLerpValues")
+			cameraWorld.hasLerpValues = true
+		end
+		
 		local realmTransfers = {}
-		for world in pairs(play.worlds) do
+		for _, world in ipairs(play.worlds) do
 			world:emit("execute", dt)
 			world:emit("correct")
 			realmTransfers[world] = {
@@ -152,6 +198,7 @@ function love.fixedUpdate(dt)
 			for entity, destination in pairs(transfersFromSource) do
 				-- TODO
 				-- Please don't forget to do stuff with relativity children
+				-- If the camera entity moves change the camera world too
 			end
 		end
 		
@@ -159,13 +206,11 @@ function love.fixedUpdate(dt)
 	end
 end
 
-function love.draw(lag)
+function love.draw(lerp)
 	if ui.type ~= "paused" then
 		love.graphics.setCanvas(play.canvas)
 		love.graphics.clear()
-		for world in pairs(play.worlds) do
-			world:emit("draw", lag)
-		end
+		play.cameraEntity.instances:get(1):emit("draw", lerp, play.cameraEntity)
 	end
 	love.graphics.setCanvas(contentCanvas)
 	love.graphics.clear()
@@ -176,6 +221,9 @@ function love.draw(lag)
 		love.graphics.setColor(settings.mouse.cursorColour)
 		love.graphics.draw(assets.images.ui.cursor.value, math.floor(ui.mouseX), math.floor(ui.mouseY))
 		love.graphics.setColor(1, 1, 1)
+	end
+	if settings.graphics.showPerformance then
+		love.graphics.print("FPS: " .. love.timer.getFPS() .. "\nDrawcalls: " .. love.graphics.getStats().drawcalls)
 	end
 	love.graphics.setCanvas(nil)
 	
@@ -227,7 +275,7 @@ function love.run()
 		if love.graphics.isActive() then -- Rendering
 			love.graphics.origin()
 			love.graphics.clear(love.graphics.getBackgroundColor())
-			love.draw(lag)
+			love.draw(lag / constants.core.tickWorth)
 			love.graphics.present()
 		end
 		

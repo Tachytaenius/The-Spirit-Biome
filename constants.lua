@@ -3,18 +3,18 @@ local constants = {}
 constants.core = {}
 constants.core.title = "The Spirit Biome"
 constants.core.identity = "biome"
-constants.core.tickWorth = 1 / 60 -- seconds
+constants.core.tickWorth = 1 / 30 -- seconds
 constants.core.maxTickSkip = 8
 
 constants.gameplay = {}
 constants.gameplay.metre = 12
-constants.gameplay.cellSize = constants.gameplay.metre * 4
+constants.gameplay.cellSize = constants.gameplay.metre * 2
 constants.gameplay.zeroSnap = 0.05
 
 constants.graphics = {}
 constants.graphics.width = 480
 constants.graphics.height = 270
-constants.graphics.channelSize = 16
+constants.graphics.channelSize = 256
 constants.graphics.erodeResolution = 2
 constants.graphics.erodeDistance = 1
 constants.graphics.horizontalMenuOffset = constants.graphics.width / math.phi / 2

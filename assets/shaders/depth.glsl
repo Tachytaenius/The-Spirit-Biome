@@ -1,4 +1,4 @@
-extern int depth = 16;
+extern int depth;
 
 vec4 effect(vec4 colour, Image texture, vec2 textureCoords, vec2 pixelCoords) {
 	vec4 fragmentColour = Texel(texture, textureCoords);

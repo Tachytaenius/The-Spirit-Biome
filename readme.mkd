@@ -1,3 +1,5 @@
+The following information may be out of date.
+
 # The Spirit Biome
 This game is made in LÖVE.
 Tachytaenius (AKA Tachtaeni (deprecated) and wolfboyft) made this.
@@ -5,6 +7,7 @@ Tachytaenius (AKA Tachtaeni (deprecated) and wolfboyft) made this.
 ## Current features
 * A nice love.run in the main chunk.
 * A nicely structured system for settings, constants and assets.
+* A smooth and well-designed movement system.
 
 ## Future plans
 * Weird, beautiful environments.

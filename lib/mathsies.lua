@@ -62,6 +62,10 @@ local function acot(x)
 	return acos(x/sqrt(1+x^2))
 end
 
+local function angleDifference(a, b)
+	return (a - b + tau / 2) % tau - tau / 2
+end
+
 local function distance(x, y)
 	return sqrt(x^2 + y^2)
 end
@@ -107,17 +111,12 @@ local function closestPointOnCircumference(px, py, cx, cy, r)
 	return ax, ay -- return the answer
 end
 
-local function int(a, b, f, n, i, ...)
+local function int(a, b, f, n)
 	n = n or 256
-	i = i or 1
-	if a > b then
-		a, b =  b, a
-	end
+	a, b = min(a, b), max(a, b)
 	local sum = 0
-	table.insert(arg, i, _)
 	for v = a, b - (b - a) / n, (b - a) / n do
-		arg[i] = v
-		sum = sum + f(unpack(arg)) * (b - a) / n
+		sum = sum + f(v) * (b - a) / n
 	end
 	return sum
 end
@@ -142,6 +141,19 @@ local function clamp(lower, x, upper)
 	return max(lower, min(x, upper))
 end
 
+local function dot(x1,y1,x2,y2)
+	return x1*x2 + y1*y2
+end
+
+local function segmentPointDistance(vx, vy, wx, wy, px, py)
+	local lengthSquared = distance(wx-vx, wy-vy) ^ 2
+	if lengthSquared == 0 then return distance(vx-px, vy-py) end
+	local t = clamp(0, dot(px-vx, py-vy, wx-vx, wy-vy) / lengthSquared, 1)
+	local projectionX = vx + t * (wx - vx)
+	local projectionY = vy + t * (wy - vy)
+	return distance(px-projectionX, py-projectionY)
+end
+
 return {
 	metadata = metadata,
 	
@@ -156,6 +168,7 @@ return {
 	atan = atan,
 	cot = cot,
 	acot = acot,
+	angleDifference = angleDifference,
 	int = int,
 	distance = distance,
 	angle = angle,
@@ -177,6 +190,8 @@ return {
 	isNan = isNan,
 	isInfinite = isInfinite,
 	clamp = clamp,
+	dot = dot,
+	segmentPointDistance = segmentPointDistance,
 	
 	-- non-deterministic but faster, for use in graphics
 	ndCos = math.cos,
