@@ -9,7 +9,6 @@ local systems = require("systems")
 return function(x, y, width, height, rng, dayLength, time)
 	local new = concord.instance()
 	new.collider = hc.new(constants.gameplay.cellSize)
-	new.hasLerpValues = false
 	new.x, new.y, new.width, new.height = x, y, width, height
 	new.rng = rng -- All worlds have a copy of the RNG so that they can allow their systems access to it via getInstance()
 	new.dayLength = length
@@ -17,10 +16,6 @@ return function(x, y, width, height, rng, dayLength, time)
 	
 	local vision = systems.vision()
 	local movement = systems.movement()
-	
-	new:addSystem(movement, "copyLerpValues")
-	
-	new:addSystem(movement, "clearLerpValues")
 	
 	-- new:addSystem(vision, "execute")
 	new:addSystem(movement, "execute")

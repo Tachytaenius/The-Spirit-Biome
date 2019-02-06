@@ -63,7 +63,7 @@ function movement:draw(lerp, entity)
 	love.graphics.clear(1 - presence.alpha, 1 - presence.alpha, 1 - presence.alpha)
 	
 	local presenceX, presenceY, presenceTheta = presence.x, presence.y, presence.theta
-	if settings.graphics.interpolation and self:getInstance().hasLerpValues then
+	if settings.graphics.interpolation then
 		presenceX = ordinate(presence.previousX, presenceX)
 		presenceY = ordinate(presence.previousY, presenceY)
 		presenceTheta = angle(presence.previousTheta, presenceTheta)
@@ -77,7 +77,7 @@ function movement:draw(lerp, entity)
 		local points = terrain[i]
 		
 		love.graphics.push()
-		local r, g, b = hsvToRgb((2 * i / #terrain) % 1, 1, 1)
+		local r, g, b = hsvToRgb((2 * i / #terrain) % 1, 1, presence.alpha)
 		love.graphics.setColor(r, g, b, 1 - (i - 1) / #terrain)
 		love.graphics.scale(1 - (i - 1) / #terrain)
 		love.graphics.translate(-presenceX, -presenceY)
@@ -92,7 +92,10 @@ function movement:draw(lerp, entity)
 	love.graphics.points(tunnelEndX, tunnelEndY)
 	
 	for shape in pairs(self:getInstance().collider:hash():shapes()) do
+		love.graphics.push()
+		love.graphics.translate(ordinate(shape.bag.previousX, shape.bag.x) - shape.bag.x, ordinate(shape.bag.previousY, shape.bag.y) - shape.bag.y)
 		shape:draw("fill")
+		love.graphics.pop()
 	end
 	
 	love.graphics.setPointSize(3)
@@ -112,22 +115,28 @@ local movementCommandsToCheck = {
 	sneak = true
 }
 
-function movement:copyLerpValues()
-	for i = 1, self.presences.size do
-		local presence = self.presences:get(i):get(components.presence)
-		presence.previousX, presence.previousY, presence.previousTheta = presence.x, presence.y, presence.theta
-	end
-end
-
-function movement:clearLerpValues()
-	for i = 1, self.presences.size do
-		local presence = self.presences:get(i):get(components.presence)
-		presence.previousX, presence.previousY, presence.previousTheta = nil, nil, nil
-	end
-end
-
 function movement:execute(dt)
 	self.moved = {}
+	
+	for i = 1, self.presences.size do
+		local presence = self.presences:get(i):get(components.presence)
+		
+		if not presence.previousX then -- or any other previous
+			presence.previousX, presence.previousY, presence.previousTheta = presence.x, presence.y, presence.theta
+		end
+		
+		do -- thing, remove later TODO?
+			local tunnelAngle = math.angle(tunnelStartX - tunnelEndX, tunnelStartY - tunnelEndY)
+			local changeX, changeY = presence.previousX - presence.x, presence.previousY - presence.y
+			local movementAngle = math.angle(changeX, changeY)
+			local direction = math.abs(math.angleDifference(tunnelAngle, movementAngle)) / (math.tau / 2) * 2 - 1
+			local distanceAlpha = math.max(tunnelRange - math.segmentPointDistance(tunnelStartX, tunnelStartY, tunnelEndX, tunnelEndY, presence.x, presence.y), 0) / tunnelRange
+			
+			presence.alpha = math.clamp(0, presence.alpha + direction * distanceAlpha * math.distance(changeX, changeY) / math.distance(tunnelStartX - tunnelEndX, tunnelStartY - tunnelEndY), 1)
+		end
+		
+		presence.previousX, presence.previousY, presence.previousTheta = presence.x, presence.y, presence.theta
+	end
 	
 	for i = 1, self.mobs.size do
 		local entity = self.mobs:get(i)
@@ -269,15 +278,6 @@ function movement:execute(dt)
 			velocity.x = newVelocityX
 			velocity.y = newVelocityY
 			
-			do -- thing, remove later TODO?
-				local tunnelAngle = math.angle(tunnelEndX - tunnelStartX, tunnelEndY - tunnelStartY)
-				local movementAngle = math.angle(velocity.x, velocity.y)
-				local direction = math.abs(math.angleDifference(tunnelAngle, movementAngle)) / (math.tau / 2) * 2 - 1
-				local distanceAlpha = math.max(tunnelRange - math.segmentPointDistance(tunnelStartX, tunnelStartY, tunnelEndX, tunnelEndY, presence.x, presence.y), 0) / tunnelRange
-				
-				presence.alpha = math.clamp(0, presence.alpha + direction * distanceAlpha * math.distance(velocity.x, velocity.y) * dt / math.distance(tunnelStartX - tunnelEndX, tunnelStartY - tunnelEndY), 1)
-			end
-			
 			-- Add velocity to position
 			presence.x, presence.y = presence.x + velocity.x * dt, presence.y + velocity.y * dt
 		end
@@ -291,6 +291,7 @@ function movement:correct()
 	for i = 1, self.presences.size do
 		local entity = self.presences:get(i)
 		local presence = entity:get(components.presence)
+		
 		if presence.clip then
 			for other, vector in pairs(self:getInstance().collider:collisions(presence.shape)) do
 				-- Make sure the other shape also clips, and also make sure it can move

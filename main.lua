@@ -172,19 +172,8 @@ function love.fixedUpdate(dt)
 	assert(dt == constants.core.tickWorth, "A fixed update represents a fixed amount of time")
 	
 	local cameraWorld = play.cameraEntity.instances:get(1)
-	if not love.graphics.isActive() or not settings.graphics.interpolation then
-		if cameraWorld.hasLerpValues then
-			cameraWorld:emit("clearLerpValues")
-			cameraWorld.hasLerpValues = false
-		end
-	end
 	
 	if ui.type ~= "paused" then
-		if love.graphics.isActive() and settings.graphics.interpolation then
-			cameraWorld:emit("copyLerpValues")
-			cameraWorld.hasLerpValues = true
-		end
-		
 		local realmTransfers = {}
 		for _, world in ipairs(play.worlds) do
 			world:emit("execute", dt)
@@ -244,7 +233,7 @@ end
 
 function love.run()
 	love.load(love.arg.parseGameArguments(arg))
-	local lag = 0
+	local lag = constants.core.tickWorth
 	love.timer.step()
 	
 	return function()
