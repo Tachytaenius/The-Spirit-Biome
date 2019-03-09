@@ -212,7 +212,7 @@ function love.draw(lerp)
 		love.graphics.setColor(1, 1, 1)
 	end
 	if settings.graphics.showPerformance then
-		love.graphics.print("FPS: " .. love.timer.getFPS() .. "\nDrawcalls: " .. love.graphics.getStats().drawcalls)
+		love.graphics.print("FPS: " .. love.timer.getFPS() .. "\nDrawcalls: " .. love.graphics.getStats().drawcalls .. "\nGarbage: " .. collectgarbage("count") * 1024)
 	end
 	love.graphics.setCanvas(nil)
 	
@@ -268,7 +268,7 @@ function love.run()
 			love.graphics.present()
 		end
 		
-		if not settings.manualGarbageCollection.enable then -- Garbage collection
+		if settings.manualGarbageCollection.enable then -- Garbage collection
 			local start = love.timer.getTime()
 			for _=1, settings.manualGarbageCollection.maxSteps do
 				if love.timer.getTime() - start > settings.manualGarbageCollection.timeLimit then break end

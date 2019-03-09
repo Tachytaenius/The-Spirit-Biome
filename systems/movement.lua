@@ -7,103 +7,6 @@ local movement = require("lib.concord.system")(
 	{"presences", components.presence}
 )
 
-local terrain = {}
-for i = 1, 12 do
-	terrain[i] = {}
-	for _ = 1, 2000 do
-		local x, y = math.polarToCartesian(math.ndRandom() * 5000, math.ndRandom() * math.tau)
-		table.insert(terrain[i], x)
-		table.insert(terrain[i], y)
-		-- table.insert(terrain, (math.ndRandom() * 2 - 1) * 2000)
-		-- table.insert(terrain, (math.ndRandom() * 2 - 1) * 2000)
-	end
-end
-
-local function hsvToRgb(h, s, v, a)
-	local r, g, b
-	
-	local i = math.floor(h * 6)
-	local f = h * 6 - i
-	local p = v * (1 - s)
-	local q = v * (1 - f * s)
-	local t = v * (1 - (1 - f) * s)
-	
-	i = i % 6
-	
-	if i == 0 then r, g, b = v, t, p
-	elseif i == 1 then r, g, b = q, v, p
-	elseif i == 2 then r, g, b = p, v, t
-	elseif i == 3 then r, g, b = p, q, v
-	elseif i == 4 then r, g, b = t, p, v
-	elseif i == 5 then r, g, b = v, p, q
-	end
-	
-	return r, g, b, a
-end
-
--- remove m TODO e l8r
-local tunnelStartX, tunnelStartY = 50, 80
-local tunnelEndX, tunnelEndY = 200, 300
-local tunnelRange = 100
-
-function movement:draw(lerp, entity)
-	if not entity then return end
-	assert(self:getInstance().entities:has(entity), "Emitted draw into the wrong instance; it should contain the camera entity")
-	
-	local function angle(previous, current)
-		return previous + math.angleDifference(current, previous) * lerp
-	end
-	
-	local function ordinate(previous, current)
-		return current * lerp + previous * (1 - lerp)
-	end
-	
-	local presence = entity:get(components.presence)
-	
-	love.graphics.clear(1 - presence.alpha, 1 - presence.alpha, 1 - presence.alpha)
-	
-	local presenceX, presenceY, presenceTheta = presence.x, presence.y, presence.theta
-	if settings.graphics.interpolation then
-		presenceX = ordinate(presence.previousX, presenceX)
-		presenceY = ordinate(presence.previousY, presenceY)
-		presenceTheta = angle(presence.previousTheta, presenceTheta)
-	end
-	
-	love.graphics.translate(constants.graphics.width / 2, constants.graphics.height - 80)
-	love.graphics.rotate(-presenceTheta)
-	love.graphics.setPointSize(1)
-	
-	for i = #terrain, 1, -1 do
-		local points = terrain[i]
-		
-		love.graphics.push()
-		local r, g, b = hsvToRgb((2 * i / #terrain) % 1, 1, presence.alpha)
-		love.graphics.setColor(r, g, b, 1 - (i - 1) / #terrain)
-		love.graphics.scale(1 - (i - 1) / #terrain)
-		love.graphics.translate(-presenceX, -presenceY)
-		love.graphics.points(unpack(points))
-		love.graphics.pop()
-	end
-	
-	love.graphics.translate(-presenceX, -presenceY)
-	
-	love.graphics.line(tunnelStartX, tunnelStartY, tunnelEndX, tunnelEndY)
-	love.graphics.setPointSize(8)
-	love.graphics.points(tunnelEndX, tunnelEndY)
-	
-	for shape in pairs(self:getInstance().collider:hash():shapes()) do
-		love.graphics.push()
-		love.graphics.translate(ordinate(shape.bag.previousX, shape.bag.x) - shape.bag.x, ordinate(shape.bag.previousY, shape.bag.y) - shape.bag.y)
-		shape:draw("fill")
-		love.graphics.pop()
-	end
-	
-	love.graphics.setPointSize(3)
-	love.graphics.setColor(1, 1, 1)
-	love.graphics.points(presenceX, presenceY)
-	love.graphics.origin()
-end
-
 local movementCommandsToCheck = {
 	advance = true,
 	strafeLeft = true,
@@ -115,26 +18,15 @@ local movementCommandsToCheck = {
 	sneak = true
 }
 
+function movement:init()
+	
+end
+
 function movement:execute(dt)
 	self.moved = {}
 	
 	for i = 1, self.presences.size do
 		local presence = self.presences:get(i):get(components.presence)
-		
-		if not presence.previousX then -- or any other previous
-			presence.previousX, presence.previousY, presence.previousTheta = presence.x, presence.y, presence.theta
-		end
-		
-		do -- thing, remove later TODO?
-			local tunnelAngle = math.angle(tunnelStartX - tunnelEndX, tunnelStartY - tunnelEndY)
-			local changeX, changeY = presence.previousX - presence.x, presence.previousY - presence.y
-			local movementAngle = math.angle(changeX, changeY)
-			local direction = math.abs(math.angleDifference(tunnelAngle, movementAngle)) / (math.tau / 2) * 2 - 1
-			local distanceAlpha = math.max(tunnelRange - math.segmentPointDistance(tunnelStartX, tunnelStartY, tunnelEndX, tunnelEndY, presence.x, presence.y), 0) / tunnelRange
-			
-			presence.alpha = math.clamp(0, presence.alpha + direction * distanceAlpha * math.distance(changeX, changeY) / math.distance(tunnelStartX - tunnelEndX, tunnelStartY - tunnelEndY), 1)
-		end
-		
 		presence.previousX, presence.previousY, presence.previousTheta = presence.x, presence.y, presence.theta
 	end
 	
@@ -277,10 +169,10 @@ function movement:execute(dt)
 			
 			velocity.x = newVelocityX
 			velocity.y = newVelocityY
-			
-			-- Add velocity to position
-			presence.x, presence.y = presence.x + velocity.x * dt, presence.y + velocity.y * dt
 		end
+		
+		-- Add velocity to position
+		presence.x, presence.y = presence.x + velocity.x * dt, presence.y + velocity.y * dt
 	end
 end
 

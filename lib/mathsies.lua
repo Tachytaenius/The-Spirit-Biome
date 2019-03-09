@@ -16,6 +16,8 @@ local metadata = {
 	]]
 }
 
+-- TODO: Just the things that need to be done (the not-already-deterministic ones). Ie remove the stuff beyond the FIXME
+
 -- TODO: Logarithms, exponentiation
 
 local tau = 6.28318530717958647692
@@ -61,6 +63,9 @@ end
 local function acot(x)
 	return acos(x/sqrt(1+x^2))
 end
+
+
+-- FIXME: Inappropriate content herein
 
 local function angleDifference(a, b)
 	return (a - b + tau / 2) % tau - tau / 2
@@ -205,3 +210,65 @@ return {
 }
 
 -- thanks for reading :-)
+
+--[[some sort of TODO?
+local tau = 6.28318530717958647692
+local sqrt, abs, floor = math.sqrt, math.abs, math.floor
+
+local function sin(x)
+	local over = floor(x / (tau/2)) % 2 == 0 -- Is the sinusoid over or under at this x?
+	x = abs(x) % (tau/2) -- Boil it down to what matters
+	local absolute = (32*x*(tau-2*x))/(5*tau^2+16*x^2-8*tau*x) -- Bhāskara I's sine approximation in terms of tau.
+	return over and absolute or -absolute
+end 
+
+local function asin(x)
+	if x < -1 or x > 1 then
+		error("x must be within [-1, 1]")
+	end
+	-- Formula given by Blue on Mathematics Stack Exchange. https://math.stackexchange.com/users/409/blue
+	local resultForAbsoluteX = tau / 4*(1-2*sqrt((1-abs(x))/(4+abs(x))))
+	return x < 0 and -resultForAbsoluteX or resultForAbsoluteX
+end
+
+local function cos(x)
+	return sin(tau / 4 - x)
+end
+
+local function acos(x)
+	return tau / 4 - asin(x)
+end
+
+local function tan(x)
+	return sin(x)/cos(x)
+end
+
+local function atan(x)
+	return asin(x/sqrt(1+x^2))
+end
+
+local function cot(x)
+	return cos(x)/sin(x)
+end
+
+local function acot(x)
+	return acos(x/sqrt(1+x^2))
+end
+
+local mathsies = {}
+for k, v in pairs(math) do
+	mathsies[k] = v
+end
+
+mathsies.tau = tau
+mathsies.pi, mathsies._pi = tau / 2, mathsies.pi
+mathsies.sin, mathsies._sin = sin, mathsies.sin
+mathsies.asin, mathsies._asin = asin, mathsies.asin
+mathsies.cos, mathsies._cos = cos, mathsies.cos
+mathsies.acos, mathsies._acos = acos, mathsies.acos
+mathsies.tan, mathsies._tan = tan, mathsies.tan
+mathsies.atan, mathsies._atan = atan, mathsies.atan
+mathsies.cot, mathsies.acot = cot, acot
+
+return mathsies
+]]

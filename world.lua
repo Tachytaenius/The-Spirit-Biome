@@ -22,8 +22,7 @@ return function(x, y, width, height, rng, dayLength, time)
 	
 	new:addSystem(movement, "correct")
 	
-	new:addSystem(movement, "draw")
-	-- new:addSystem(vision, "draw")
+	new:addSystem(vision, "draw")
 	
 	return new
 end
